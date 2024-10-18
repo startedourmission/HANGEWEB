@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import NavLink from './NavLink';
 
-let heroImages = ['/1.jpg', '/6.jpg', '/3.jpg', '/4.jpg', '/5.jpg', '/2.jpg'];
+let heroImages = ['/1.jpg', '/2.jpg', '/3.jpg', '/4.jpg', '/5.jpg', '/6.jpg'];
 
 export default function Hero() {
   return (
@@ -11,7 +11,7 @@ export default function Hero() {
       <div className="custom-screen pt-28 text-gray-600">
         <div className="space-y-5 max-w-4xl mx-auto text-center">
           <h1 className="text-4xl text-gray-800 font-extrabold mx-auto sm:text-6xl">
-            Generate your Korean Art in seconds
+            Generate Korean Painting
           </h1>
           <p className="max-w-xl mx-auto">
             Hanji makes it simple for you to generate cool looking Korean Art
@@ -26,7 +26,7 @@ export default function Hero() {
             </NavLink>
             <NavLink
               target="_blank"
-              href="https://github.com/Nutlope/qrGPT"
+              href="https://github.com/startedourmission/hanji"
               className="text-gray-700 border hover:bg-gray-50"
               scroll={false}
             >
