@@ -42,8 +42,8 @@ const Navbar = () => {
         <div className="custom-screen items-center mx-auto md:flex">
           <div className="flex items-center justify-between py-3 md:py-5 md:block">
             <Link href="/" className="flex items-center gap-3">
-              <Image src="/box.svg" alt="logo" width={30} height={30} />
-              <div className="font-bold text-lg">QrGPT</div>
+              {/* <Image src="/box.svg" alt="logo" width={30} height={30} /> */}
+              <div className="font-bold text-lg">HANJI</div>
             </Link>
             <div className="md:hidden">
               <button

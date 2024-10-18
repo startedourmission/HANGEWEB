@@ -8,8 +8,8 @@ import PlausibleProvider from 'next-plausible';
 
 const inter = Inter({ subsets: ['latin'] });
 
-let title = 'QrGPT - QR Code Generator';
-let description = 'Generate your AI QR Code in seconds';
+let title = 'HANJI - Korean Art Generator';
+let description = 'Generate your Korean Art in seconds';
 let url = 'https://www.qrgpt.io';
 let ogimage = 'https://www.qrgpt.io/og-image.png';
 let sitename = 'qrGPT.io';

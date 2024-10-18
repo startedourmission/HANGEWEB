@@ -27,16 +27,10 @@ import { PromptSuggestion } from '@/components/PromptSuggestion';
 import { useRouter } from 'next/navigation';
 import { toast, Toaster } from 'react-hot-toast';
 
-const promptSuggestions = [
-  'A city view with clouds',
-  'A beautiful glacier',
-  'A forest overlooking a mountain',
-  'A saharan desert',
-];
 
 const generateFormSchema = z.object({
-  url: z.string().min(1),
-  prompt: z.string().min(3).max(160),
+  image: z.string().min(1),
+  model: z.string().min(3).max(160),
 });
 
 type GenerateFormValues = z.infer<typeof generateFormSchema>;
@@ -67,135 +61,69 @@ const Body = ({
 
     // Set default values so that the form inputs are controlled components.
     defaultValues: {
-      url: '',
-      prompt: '',
+      image: '',
+      model: '',
     },
   });
 
-  useEffect(() => {
-    if (imageUrl && prompt && redirectUrl && modelLatency && id) {
-      setResponse({
-        image_url: imageUrl,
-        model_latency_ms: modelLatency,
-        id: id,
-      });
-      setSubmittedURL(redirectUrl);
-
-      form.setValue('prompt', prompt);
-      form.setValue('url', redirectUrl);
-    }
-  }, [imageUrl, modelLatency, prompt, redirectUrl, id, form]);
-
-  const handleSuggestionClick = useCallback(
-    (suggestion: string) => {
-      form.setValue('prompt', suggestion);
-    },
-    [form],
-  );
 
   const handleSubmit = useCallback(
     async (values: GenerateFormValues) => {
       setIsLoading(true);
       setResponse(null);
-      setSubmittedURL(values.url);
-
-      try {
-        const request: QrGenerateRequest = {
-          url: values.url,
-          prompt: values.prompt,
-        };
-        const response = await fetch('/api/generate', {
-          method: 'POST',
-          body: JSON.stringify(request),
-        });
-
-        // Handle API errors.
-        if (!response.ok || response.status !== 200) {
-          const text = await response.text();
-          throw new Error(
-            `Failed to generate QR code: ${response.status}, ${text}`,
-          );
-        }
-
-        const data = await response.json();
-
-        va.track('Generated QR Code', {
-          prompt: values.prompt,
-        });
-
-        router.push(`/start/${data.id}`);
-      } catch (error) {
-        va.track('Failed to generate', {
-          prompt: values.prompt,
-        });
-        if (error instanceof Error) {
-          setError(error);
-        }
-      } finally {
-        setIsLoading(false);
+      setSubmittedURL(values.image);
       }
-    },
-    [router],
-  );
+    )
 
   return (
     <div className="flex justify-center items-center flex-col w-full lg:p-0 p-4 sm:mb-28 mb-0">
       <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 mt-10">
         <div className="col-span-1">
-          <h1 className="text-3xl font-bold mb-10">Generate a QR Code</h1>
+          <h1 className="text-3xl font-bold mb-10">Upload your image</h1>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)}>
               <div className="flex flex-col gap-4">
-                <FormField
+                {
+                  <FormField
                   control={form.control}
-                  name="url"
+                  name="image"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>URL</FormLabel>
+                      <FormLabel>Upload Image </FormLabel>
                       <FormControl>
-                        <Input placeholder="roomgpt.io" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        This is what your QR code will link to.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="prompt"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Prompt</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="A city view with clouds"
-                          className="resize-none"
-                          {...field}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = () => {
+                                field.onChange(reader.result); // 파일을 form 필드에 저장
+                              };
+                              reader.readAsDataURL(file); // 파일을 base64로 변환
+                              
+                            }
+                          }}
                         />
                       </FormControl>
-                      <FormDescription className="">
-                        This is what the image in your QR code will look like.
+                      <FormDescription>
+                        Please upload an image. The preview will be shown below.
                       </FormDescription>
-
+                
+                      {field.value && (
+                        <div className="mt-4">
+                          <img src={field.value} alt="Uploaded preview" className="w-full h-auto" />
+                        </div>
+                      )}
+                
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <div className="my-2">
-                  <p className="text-sm font-medium mb-3">Prompt suggestions</p>
-                  <div className="grid sm:grid-cols-2 grid-cols-1 gap-3 text-center text-gray-500 text-sm">
-                    {promptSuggestions.map((suggestion) => (
-                      <PromptSuggestion
-                        key={suggestion}
-                        suggestion={suggestion}
-                        onClick={() => handleSuggestionClick(suggestion)}
-                        isLoading={isLoading}
-                      />
-                    ))}
-                  </div>
-                </div>
+                
+                }
                 <Button
                   type="submit"
                   disabled={isLoading}

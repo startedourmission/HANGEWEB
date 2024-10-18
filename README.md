@@ -1,10 +1,12 @@
-<a href="https://qrGPT.io">
-  <img alt="QrGPT – Generate beautiful AI QR Codes in seconds." src="/public/og-image.png">
-  <h1 align="center">qrGPT</h1>
-</a>
+  <!-- <img alt="QrGPT – Generate beautiful AI QR Codes in seconds." src="/public/og-image.png"> -->
+<h1 align="center">HANJI</h1>
 
 <p align="center">
-  Generate beautiful AI QR Codes in seconds. Powered by Vercel and Replicate.
+  Generate beautiful AI QR Codes in seconds. 
+  <a href="https://qrGPT.io">
+  Powered by Vercel and Replicate.
+  </a>
+
 </p>
 
 <p align="center">

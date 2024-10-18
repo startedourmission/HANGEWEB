@@ -6,8 +6,8 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <GradientWrapper></GradientWrapper>
-      <CTA />
+      {/* <GradientWrapper></GradientWrapper> */}
+      {/* <CTA /> */}
     </>
   );
 }
