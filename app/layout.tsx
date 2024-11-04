@@ -12,7 +12,7 @@ let title = 'HANJI - Korean Art Generator';
 let description = 'Generate your Korean Art in seconds';
 let url = 'https://www.qrgpt.io';
 let ogimage = 'https://www.qrgpt.io/og-image.png';
-let sitename = 'qrGPT.io';
+let sitename = 'HANJI';
 
 export const metadata: Metadata = {
   metadataBase: new URL(url),

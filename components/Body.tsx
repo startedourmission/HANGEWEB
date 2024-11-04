@@ -1,7 +1,4 @@
 'use client';
-
-import * as z from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import {
   Form,
@@ -12,68 +9,43 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useCallback, useEffect, useState } from 'react';
-import { QrGenerateRequest, QrGenerateResponse } from '@/utils/service';
-import { QrCard } from '@/components/QrCard';
-import { AlertCircle } from 'lucide-react';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { useState } from 'react';
 import LoadingDots from '@/components/ui/loadingdots';
-import downloadQrCode from '@/utils/downloadQrCode';
-import va from '@vercel/analytics';
-import { PromptSuggestion } from '@/components/PromptSuggestion';
-import { useRouter } from 'next/navigation';
 import { toast, Toaster } from 'react-hot-toast';
 
+interface FormValues {
+  image: string | ArrayBuffer | null;
+}
 
-const generateFormSchema = z.object({
-  image: z.string().min(1),
-  model: z.string().min(3).max(160),
-});
-
-type GenerateFormValues = z.infer<typeof generateFormSchema>;
-
-const Body = ({
-  imageUrl,
-  prompt,
-  redirectUrl,
-  modelLatency,
-  id,
-}: {
-  imageUrl?: string;
-  prompt?: string;
-  redirectUrl?: string;
-  modelLatency?: number;
-  id?: string;
-}) => {
+const Body = () => {
+  const form = useForm<FormValues>(); // 폼 라이브러리에서 제공하는 훅 사용
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const [response, setResponse] = useState<QrGenerateResponse | null>(null);
-  const [submittedURL, setSubmittedURL] = useState<string | null>(null);
+  const [response, setResponse] = useState<string | null>(null);
 
-  const router = useRouter();
-
-  const form = useForm<GenerateFormValues>({
-    resolver: zodResolver(generateFormSchema),
-    mode: 'onChange',
-
-    // Set default values so that the form inputs are controlled components.
-    defaultValues: {
-      image: '',
-      model: '',
-    },
-  });
+  const handleSubmit = async (data: FormValues) => {
+    setIsLoading(true);
+    console.log('Submitting:', data); // 이 줄을 추가해 보세요.
 
 
-  const handleSubmit = useCallback(
-    async (values: GenerateFormValues) => {
-      setIsLoading(true);
-      setResponse(null);
-      setSubmittedURL(values.image);
-      }
-    )
+    try {
+      const formData = new FormData();
+      formData.append('image', data.image as string); // 파일 데이터 추가
+
+      const res = await fetch('https://4b57-34-16-165-67.ngrok-free.app/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await res.json();
+      setResponse(result.message || 'Success');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   return (
     <div className="flex justify-center items-center flex-col w-full lg:p-0 p-4 sm:mb-28 mb-0">
@@ -95,7 +67,7 @@ const Body = ({
                           type="file"
                           accept="image/*"
                           onChange={(e) => {
-                            const file = e.target.files[0];
+                            const file = e.target.files?.[0];
                             
                             if (file) {
                               const reader = new FileReader();
@@ -114,7 +86,7 @@ const Body = ({
                 
                       {field.value && (
                         <div className="mt-4">
-                          <img src={field.value} alt="Uploaded preview" className="w-full h-auto" />
+                          <img src={field.value as string} alt="Uploaded preview" className="w-full h-auto" />
                         </div>
                       )}
                 
@@ -122,8 +94,8 @@ const Body = ({
                     </FormItem>
                   )}
                 />
-                
                 }
+
                 <Button
                   type="submit"
                   disabled={isLoading}
@@ -135,63 +107,13 @@ const Body = ({
                   ) : response ? (
                     '✨ Regenerate'
                   ) : (
-                    'Generate'
+                    'Generate !'
                   )}
                 </Button>
 
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Error</AlertTitle>
-                    <AlertDescription>{error.message}</AlertDescription>
-                  </Alert>
-                )}
               </div>
             </form>
           </Form>
-        </div>
-        <div className="col-span-1">
-          {submittedURL && (
-            <>
-              <h1 className="text-3xl font-bold sm:mb-5 mb-5 mt-5 sm:mt-0 sm:text-center text-left">
-                Your QR Code
-              </h1>
-              <div>
-                <div className="flex flex-col justify-center relative h-auto items-center">
-                  {response ? (
-                    <QrCard
-                      imageURL={response.image_url}
-                      time={(response.model_latency_ms / 1000).toFixed(2)}
-                    />
-                  ) : (
-                    <div className="relative flex flex-col justify-center items-center gap-y-2 w-[510px] border border-gray-300 rounded shadow group p-2 mx-auto animate-pulse bg-gray-400 aspect-square max-w-full" />
-                  )}
-                </div>
-                {response && (
-                  <div className="flex justify-center gap-5 mt-4">
-                    <Button
-                      onClick={() =>
-                        downloadQrCode(response.image_url, 'qrCode')
-                      }
-                    >
-                      Download
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        navigator.clipboard.writeText(
-                          `https://qrgpt.io/start/${id || ''}`,
-                        );
-                        toast.success('Link copied to clipboard');
-                      }}
-                    >
-                      ✂️ Share
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
         </div>
       </div>
       <Toaster />
