@@ -19,33 +19,39 @@ interface FormValues {
 }
 
 const Body = () => {
-  const form = useForm<FormValues>(); // 폼 라이브러리에서 제공하는 훅 사용
+  const form = useForm<FormValues>();
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState<string | null>(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null); // 업로드된 이미지 URL 상태 추가
 
   const handleSubmit = async (data: FormValues) => {
     setIsLoading(true);
-    console.log('Submitting:', data); // 이 줄을 추가해 보세요.
-
+    console.log('Submitting:', data);
 
     try {
       const formData = new FormData();
-      formData.append('image', data.image as string); // 파일 데이터 추가
+      formData.append('image', data.image);
 
-      const res = await fetch('https://4b57-34-16-165-67.ngrok-free.app/upload', {
+      const res = await fetch('https://f79d-104-196-228-208.ngrok-free.app/upload', {
         method: 'POST',
         body: formData,
       });
 
-      const result = await res.json();
-      setResponse(result.message || 'Success');
-    } catch (error) {
-      console.error('Error uploading image:', error);
-    } finally {
-      setIsLoading(false);
+      if (!res.ok) {
+      throw new Error('Failed to upload image');
     }
-  };
 
+    const blob = await res.blob();
+    const imageUrl = URL.createObjectURL(blob);
+    setUploadedImageUrl(imageUrl); // 이미지 URL로 설정
+    toast.success('Image uploaded successfully!');
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    toast.error('Failed to upload image');
+  } finally {
+    setIsLoading(false);
+  }
+  };
 
   return (
     <div className="flex justify-center items-center flex-col w-full lg:p-0 p-4 sm:mb-28 mb-0">
@@ -55,52 +61,42 @@ const Body = () => {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)}>
               <div className="flex flex-col gap-4">
-                {
-                  <FormField
+                <FormField
                   control={form.control}
                   name="image"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Upload Image </FormLabel>
                       <FormControl>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            
-                            if (file) {
-                              const reader = new FileReader();
-                              reader.onload = () => {
-                                field.onChange(reader.result); // 파일을 form 필드에 저장
-                              };
-                              reader.readAsDataURL(file); // 파일을 base64로 변환
-                              
-                            }
-                          }}
-                        />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            field.onChange(file); // 파일 객체를 그대로 전달
+                          }
+                        }}
+                      />
                       </FormControl>
                       <FormDescription>
                         Please upload an image. The preview will be shown below.
                       </FormDescription>
-                
+
                       {field.value && (
                         <div className="mt-4">
-                          <img src={field.value as string} alt="Uploaded preview" className="w-full h-auto" />
+                        <img src={URL.createObjectURL(field.value)} alt="Uploaded preview" className="w-full h-auto" />
                         </div>
                       )}
-                
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                }
 
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="inline-flex justify-center
-                 max-w-[200px] mx-auto w-full"
+                  className="inline-flex justify-center max-w-[200px] mx-auto w-full"
                 >
                   {isLoading ? (
                     <LoadingDots color="white" />
@@ -110,10 +106,17 @@ const Body = () => {
                     'Generate !'
                   )}
                 </Button>
-
               </div>
             </form>
           </Form>
+
+          {/* 서버 응답으로 받은 이미지 URL을 표시 */}
+          {uploadedImageUrl && (
+            <div className="mt-6">
+              <h2 className="text-2xl font-semibold mb-4">Uploaded Image Result:</h2>
+              <img src={uploadedImageUrl} alt="Uploaded Image Result" className="w-full h-auto" />
+            </div>
+          )}
         </div>
       </div>
       <Toaster />
